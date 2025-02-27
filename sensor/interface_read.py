@@ -1,23 +1,32 @@
+# -*- coding: utf-8 -*-
+
 from flask import Flask, jsonify, render_template_string
 import csv
-import subprocess
 import time
+import threading
+import subprocess
+
+CSV_FILE = "historico.csv"
 
 def ler_historico():
     historico = []
     try:
-        with open("historico.csv", "r") as file:
+        with open(CSV_FILE, "r") as file:
             reader = csv.reader(file)
             for row in reader:
                 if len(row) == 3:
-                    historico.append({"timestamp": row[0], "temperatura": float(row[1]), "umidade": float(row[2])})
+                    historico.append({
+                        "timestamp": row[0],
+                        "temperatura": float(row[1]),
+                        "umidade": float(row[2])
+                    })
     except FileNotFoundError:
         return []
     return historico
 
 def executar_leitura():
     while True:
-        subprocess.run(["./dht11_read"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # Executa o binário sem saída
+        subprocess.run(["./dht11_read"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # Executa o binÃ¡rio
         time.sleep(10)  # Aguarda 10 segundos antes de uma nova leitura
 
 app = Flask(__name__)
@@ -31,7 +40,7 @@ def dados():
     <head>
         <meta charset='UTF-8'>
         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-        <title>Histórico de Leitura</title>
+        <title>HistÃ³rico de Leitura</title>
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -62,11 +71,11 @@ def dados():
         </style>
     </head>
     <body>
-        <h1>Histórico de Temperatura e Umidade</h1>
+        <h1>HistÃ³rico de Temperatura e Umidade</h1>
         <table>
             <tr>
                 <th>Data e Hora</th>
-                <th>Temperatura (°C)</th>
+                <th>Temperatura (Â°C)</th>
                 <th>Umidade (%)</th>
             </tr>
             {% for dado in historico %}
@@ -83,6 +92,5 @@ def dados():
     return render_template_string(template, historico=historico)
 
 if __name__ == "__main__":
-    import threading
     threading.Thread(target=executar_leitura, daemon=True).start()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
