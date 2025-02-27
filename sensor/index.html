@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoramento DHT11</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        canvas {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monitoramento de Temperatura e Umidade</h1>
+        <h2>Última Leitura</h2>
+        <p><strong>Temperatura:</strong> <span id="temp">--</span>°C</p>
+        <p><strong>Umidade:</strong> <span id="hum">--</span>%</p>
+    </div>
+    
+    <div class="container">
+        <h2>Histórico</h2>
+        <canvas id="historicoChart"></canvas>
+    </div>
+
+    <script>
+        async function carregarDados() {
+            const response = await fetch('/dados');
+            const dados = await response.json();
+            if (dados.dados.length > 0) {
+                const ultima = dados.dados[dados.dados.length - 1];
+                document.getElementById('temp').innerText = ultima.temperatura;
+                document.getElementById('hum').innerText = ultima.umidade;
+
+                const labels = dados.dados.map(d => d.timestamp);
+                const temperaturas = dados.dados.map(d => d.temperatura);
+                const umidades = dados.dados.map(d => d.umidade);
+
+                new Chart(document.getElementById('historicoChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Temperatura (°C)',
+                                data: temperaturas,
+                                borderColor: 'red',
+                                fill: false
+                            },
+                            {
+                                label: 'Umidade (%)',
+                                data: umidades,
+                                borderColor: 'blue',
+                                fill: false
+                            }
+                        ]
+                    }
+                });
+            }
+        }
+        carregarDados();
+    </script>
+</body>
+</html>
+
